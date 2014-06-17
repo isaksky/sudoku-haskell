@@ -15,16 +15,15 @@ main = do
                       putStrLn "Orig puzzle:"
                       (putStrLn . puzzleToStr)  p
                       let filled = fillObvious p
-                      let solved = 0 `notElem` filled
-                      case solved of True -> do
-                                       putStrLn "Solution:"
-                                       (putStrLn . puzzleToStr) p
-                                     False -> do
-                                       let recSolved = recSolve filled
-                                       case recSolved of Nothing -> putStrLn "Could not solve it!"
-                                                         Just p -> do
-                                                           putStrLn "Solution:"
-                                                           (putStrLn . puzzleToStr) p
+                      case (isSolved filled) of True -> do
+                                                  putStrLn "Solution:"
+                                                  (putStrLn . puzzleToStr) p
+                                                False -> do
+                                                  let recSolved = recSolve filled
+                                                  case recSolved of Nothing -> putStrLn "Could not solve it!"
+                                                                    Just p -> do
+                                                                      putStrLn "Solution:"
+                                                                      (putStrLn . puzzleToStr) p
                   )
     puzzles
 
@@ -76,7 +75,7 @@ possByIdx puzzle idx
 fillObvious :: [Int] -> [Int]
 fillObvious puzzle =
   let filled = [case v of 0 -> let possibilities = possByIdx puzzle idx
-                               in if (length possibilities) == 1 then possibilities !! 0 else 0
+                               in if (length possibilities) == 1 then head possibilities else 0
                           _ -> v
                           | idx <- [0..80], let v = puzzle !! idx]
   in if filled == puzzle then filled else fillObvious filled
@@ -104,5 +103,4 @@ recSolve puzzle =
   in case poss of [] -> Nothing   -- There is a square with 0 possibilities. Cannot solve.
                   _  -> let p_puzzles = map (\ p -> [if i == idx then p else puzzle !! i | i <- [0..80]]) poss
                             p_puzzles_f = map fillObvious p_puzzles
-                            solution = (find isSolved p_puzzles) `orElse` (find isSolved p_puzzles_f)
-                        in solution `orElse` firstM (map recSolve p_puzzles_f)
+                        in (find isSolved p_puzzles_f) `orElse` firstM (map recSolve p_puzzles_f)
